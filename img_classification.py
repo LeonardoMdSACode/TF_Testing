@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 import numpy as np
 import PIL
 import tensorflow as tf
@@ -47,16 +46,6 @@ val_ds = tf.keras.utils.image_dataset_from_directory(
 
 class_names = train_ds.class_names
 print(class_names)
-
-import matplotlib.pyplot as plt
-
-plt.figure(figsize=(10, 10))
-for images, labels in train_ds.take(1):
-  for i in range(9):
-    ax = plt.subplot(3, 3, i + 1)
-    plt.imshow(images[i].numpy().astype("uint8"))
-    plt.title(class_names[labels[i]])
-    plt.axis("off")
 
 for image_batch, labels_batch in train_ds:
   print(image_batch.shape)
@@ -112,20 +101,6 @@ val_loss = history.history['val_loss']
 
 epochs_range = range(epochs)
 
-plt.figure(figsize=(8, 8))
-plt.subplot(1, 2, 1)
-plt.plot(epochs_range, acc, label='Training Accuracy')
-plt.plot(epochs_range, val_acc, label='Validation Accuracy')
-plt.legend(loc='lower right')
-plt.title('Training and Validation Accuracy')
-
-plt.subplot(1, 2, 2)
-plt.plot(epochs_range, loss, label='Training Loss')
-plt.plot(epochs_range, val_loss, label='Validation Loss')
-plt.legend(loc='upper right')
-plt.title('Training and Validation Loss')
-plt.show()
-
 data_augmentation = keras.Sequential(
   [
     layers.RandomFlip("horizontal",
@@ -136,14 +111,6 @@ data_augmentation = keras.Sequential(
     layers.RandomZoom(0.1),
   ]
 )
-
-plt.figure(figsize=(10, 10))
-for images, _ in train_ds.take(1):
-  for i in range(9):
-    augmented_images = data_augmentation(images)
-    ax = plt.subplot(3, 3, i + 1)
-    plt.imshow(augmented_images[0].numpy().astype("uint8"))
-    plt.axis("off")
 
 model = Sequential([
   data_augmentation,
@@ -180,20 +147,6 @@ loss = history.history['loss']
 val_loss = history.history['val_loss']
 
 epochs_range = range(epochs)
-
-plt.figure(figsize=(8, 8))
-plt.subplot(1, 2, 1)
-plt.plot(epochs_range, acc, label='Training Accuracy')
-plt.plot(epochs_range, val_acc, label='Validation Accuracy')
-plt.legend(loc='lower right')
-plt.title('Training and Validation Accuracy')
-
-plt.subplot(1, 2, 2)
-plt.plot(epochs_range, loss, label='Training Loss')
-plt.plot(epochs_range, val_loss, label='Validation Loss')
-plt.legend(loc='upper right')
-plt.title('Training and Validation Loss')
-plt.show()
 
 sunflower_url = "https://storage.googleapis.com/download.tensorflow.org/example_images/592px-Red_sunflower.jpg"
 sunflower_path = tf.keras.utils.get_file('Red_sunflower', origin=sunflower_url)

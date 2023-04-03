@@ -4,7 +4,6 @@ import tensorflow_datasets as tfds
 
 import math
 import numpy as np
-import tqdm
 import tqdm.auto
 
 tqdm.tqdm = tqdm.auto.tqdm
@@ -34,36 +33,48 @@ train_ds = train_ds.map(normalize)
 test_ds = test_ds.map(normalize)
 
 # Flat+2Dense
-print("1flat+2dense layers")
-flat_layer = tf.keras.layers.Flatten(input_shape=(28, 28, 1))
-dense_layer1 = tf.keras.layers.Dense(128, activation=tf.nn.relu)
-dense_layer2 = tf.keras.layers.Dense(10, activation=tf.nn.softmax)
+print("CNN layers")
+conv2d = tf.keras.layers.Conv2D(32, (3, 3), padding='same', activation=tf.nn.relu,
+                                input_shape=(28, 28, 1)),
+max_pooling = tf.keras.layers.MaxPooling2D((2, 2), strides=2),
+conv2d2 = tf.keras.layers.Conv2D(64, (3, 3), padding='same', activation=tf.nn.relu),
+max_pooling2 = tf.keras.layers.MaxPooling2D((2, 2), strides=2),
+flat = tf.keras.layers.Flatten(),
+dense = tf.keras.layers.Dense(128, activation=tf.nn.relu),
+dense2 = tf.keras.layers.Dense(10, activation=tf.nn.softmax)
+
 # Sequential
 print(".Sequential (defining model from layers)")
 model = tf.keras.Sequential([
-   flat_layer,
-   dense_layer1,
-   dense_layer2
+   tf.keras.layers.Conv2D(32, (3, 3), padding='same', activation=tf.nn.relu,
+                          input_shape=(28, 28, 1)),
+   tf.keras.layers.MaxPooling2D((2, 2), strides=2),
+   tf.keras.layers.Conv2D(64, (3, 3), padding='same', activation=tf.nn.relu),
+   tf.keras.layers.MaxPooling2D((2, 2), strides=2),
+   tf.keras.layers.Flatten(),
+   tf.keras.layers.Dense(128, activation=tf.nn.relu),
+   tf.keras.layers.Dense(10, activation=tf.nn.softmax)
 ])
+
 # compile
 print(".compile")
 model.compile(optimizer='adam',
               loss='sparse_categorical_crossentropy',
               metrics='accuracy')
 
-# Divide datasets
-print("Separate train from validation datasets")
+# fit
+print(".fit")
 BATCH_SIZE = 30
 train_ds = train_ds.repeat().shuffle(num_train_examples).batch(BATCH_SIZE)
 test_ds = test_ds.batch(BATCH_SIZE)
 
-# fit
-print(".fit")
-EPOCHS = 5
-model.fit(train_ds, epochs=5,
-          steps_per_epoch=math.ceil(num_train_examples / BATCH_SIZE),
-          validation_data=test_ds,
-          validation_steps=math.ceil(num_test_examples / BATCH_SIZE))
+EPOCHS = 8
+history = model.fit(train_ds,
+                    steps_per_epoch=math.ceil(num_train_examples / BATCH_SIZE),
+                    epochs=EPOCHS,
+                    validation_data=test_ds,
+                    validation_steps=math.ceil(num_test_examples / BATCH_SIZE)
+                    )
 
 # Evaluate metrics=accu
 print(".evaluate")
