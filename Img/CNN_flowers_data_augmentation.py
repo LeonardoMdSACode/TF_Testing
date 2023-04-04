@@ -41,3 +41,122 @@ for cl in classes:
       shutil.move(v, os.path.join(base_dir, 'val', cl))
 
 round(len(images)*0.8)
+train_dir = os.path.join(base_dir, 'train')
+val_dir = os.path.join(base_dir, 'val')
+
+batch_size = 100
+IMG_SHAPE = 150
+
+print("Apply Random Horizontal Flip")
+image_gen = ImageDataGenerator(rescale=1./255, horizontal_flip=True)
+
+train_data_gen = image_gen.flow_from_directory(
+                                                batch_size=batch_size,
+                                                directory=train_dir,
+                                                shuffle=True,
+                                                target_size=(IMG_SHAPE,IMG_SHAPE)
+                                                )
+def plotImages(images_arr):
+   fig, axes = plt.subplots(1, 5, figsize=(20, 20))
+   axes = axes.flatten()
+   for img, ax in zip(images_arr, axes):
+      ax.imshow(img)
+   plt.tight_layout()
+   plt.show()
+augmented_images = [train_data_gen[0][0][0] for i in range(5)]
+plotImages(augmented_images)
+
+print("Apply Random Rotation")
+image_gen = ImageDataGenerator(rescale=1./255, rotation_range=45)
+train_data_gen = image_gen.flow_from_directory(batch_size=batch_size,
+                                               directory=train_dir,
+                                               shuffle=True,
+                                               target_size=(IMG_SHAPE, IMG_SHAPE))
+augmented_images = [train_data_gen[0][0][0] for i in range(5)]
+plotImages(augmented_images)
+
+print("Apply Random Zoom")
+image_gen = ImageDataGenerator(rescale=1./255, zoom_range=0.5)
+train_data_gen = image_gen.flow_from_directory(
+                                                batch_size=batch_size,
+                                                directory=train_dir,
+                                                shuffle=True,
+                                                target_size=(IMG_SHAPE, IMG_SHAPE)
+                                                )
+augmented_images = [train_data_gen[0][0][0] for i in range(5)]
+plotImages(augmented_images)
+
+print("Put it all Together")
+image_gen_train = ImageDataGenerator(
+                    rescale=1./255,
+                    rotation_range=45,
+                    width_shift_range=.15,
+                    height_shift_range=.15,
+                    horizontal_flip=True,
+                    zoom_range=0.5
+                    )
+train_data_gen = image_gen_train.flow_from_directory(
+                                                batch_size=batch_size,
+                                                directory=train_dir,
+                                                shuffle=True,
+                                                target_size=(IMG_SHAPE,IMG_SHAPE),
+                                                class_mode='sparse'
+                                                )
+augmented_images = [train_data_gen[0][0][0] for i in range(5)]
+plotImages(augmented_images)
+
+print("Create aData Generator for the Validation Set")
+image_gen_val = ImageDataGenerator(rescale=1./255)
+val_data_gen = image_gen_val.flow_from_directory(batch_size=batch_size,
+                                                 directory=val_dir,
+                                                 target_size=(IMG_SHAPE, IMG_SHAPE),
+                                                 class_mode='sparse')
+
+print("Create CNN")
+model = Sequential()
+model.add(Conv2D(16, 3, padding='same', activation='relu', input_shape=(IMG_SHAPE,IMG_SHAPE, 3)))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(Conv2D(32, 3, padding='same', activation='relu'))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(Conv2D(64, 3, padding='same', activation='relu'))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(Flatten())
+model.add(Dropout(0.2))
+model.add(Dense(512, activation='relu'))
+model.add(Dropout(0.2))
+model.add(Dense(5))
+
+print("Compile Model   .compile")
+model.compile(optimizer='adam',
+              loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+              metrics=['accuracy'])
+
+print("Train the Model")
+epochs = 8
+history = model.fit(
+    train_data_gen,
+    steps_per_epoch=int(np.ceil(train_data_gen.n / float(batch_size))),
+    epochs=epochs,
+    validation_data=val_data_gen,
+    validation_steps=int(np.ceil(val_data_gen.n / float(batch_size)))
+)
+# epochs = 8 loss: 0.8837 - accuracy: 0.6596 - val_loss: 0.7550 - val_accuracy: 0.7252
+
+print("Plot Training and Validation Graphs")
+acc = history.history['accuracy']
+val_acc = history.history['val_accuracy']
+loss = history.history['loss']
+val_loss = history.history['val_loss']
+epochs_range = range(epochs)
+plt.figure(figsize=(8, 8))
+plt.subplot(1, 2, 1)
+plt.plot(epochs_range, acc, label='Training Accuracy')
+plt.plot(epochs_range, val_acc, label='Validation Accuracy')
+plt.legend(loc='lower right')
+plt.title('Training and Validation Accuracy')
+plt.subplot(1, 2, 2)
+plt.plot(epochs_range, loss, label='Training Loss')
+plt.plot(epochs_range, val_loss, label='Validation Loss')
+plt.legend(loc='upper right')
+plt.title('Training and Validation Loss')
+plt.show()

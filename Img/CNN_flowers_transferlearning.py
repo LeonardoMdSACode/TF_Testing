@@ -38,6 +38,7 @@ def format_image(image, label):
 BATCH_SIZE = 32
 train_batches = training_set.shuffle(num_training_examples//4).map(format_image).batch(BATCH_SIZE).prefetch(1)
 validation_batches = validation_set.map(format_image).batch(BATCH_SIZE).prefetch(1)
+# cuz you created batches here, model.fit wont need steps
 
 print("Simple Transfer Learning with TensorFlow Hub")
 URL = "https://tfhub.dev/google/tf2-preview/mobilenet_v2/feature_vector/4"
@@ -65,6 +66,7 @@ EPOCHS = 6
 history = model.fit(train_batches,
                     epochs=EPOCHS,
                     validation_data=validation_batches)
+# EPOCHS = 6 loss: 0.1917 - accuracy: 0.9455 - val_loss: 0.2869 - val_accuracy: 0.9037
 
 print("Plot Training and Validation Graphs")
 acc = history.history['accuracy']
@@ -86,31 +88,31 @@ plt.title('Training and Validation Loss')
 plt.show()
 
 print("Check Predictions")
+class_names = np.array(dataset_info.features['label'].names)
+print(class_names)
 
+print("Create an Image Batch and Make Predictions")
+image_batch, label_batch = next(iter(train_batches))
+image_batch = image_batch.numpy()
+label_batch = label_batch.numpy()
+predicted_batch = model.predict(image_batch)
+predicted_batch = tf.squeeze(predicted_batch).numpy()
+predicted_ids = np.argmax(predicted_batch, axis=-1)
+predicted_class_names = class_names[predicted_ids]
+print(predicted_class_names)
 
+print("Print True Labels and Predicted Indices:")
+print("Labels:           ", label_batch)
+print("Predicted labels: ", predicted_ids)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+print("Plot Model Predictions")
+plt.figure(figsize=(10,9))
+for n in range(30):
+  plt.subplot(6,5,n+1)
+  plt.subplots_adjust(hspace = 0.3)
+  plt.imshow(image_batch[n])
+  color = "blue" if predicted_ids[n] == label_batch[n] else "red"
+  plt.title(predicted_class_names[n].title(), color=color)
+  plt.axis('off')
+_ = plt.suptitle("Model predictions (blue: correct, red: incorrect)")
 

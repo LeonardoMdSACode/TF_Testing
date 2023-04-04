@@ -53,6 +53,7 @@ def format_image(image, label):
 BATCH_SIZE = 32
 train_batches      = train_examples.shuffle(num_examples//4).map(format_image).batch(BATCH_SIZE).prefetch(1)
 validation_batches = validation_examples.map(format_image).batch(BATCH_SIZE).prefetch(1)
+# cuz you created batches here, model.fit wont need steps
 
 print("Run the classifier on a batch of images")
 image_batch, label_batch = next(iter(train_batches.take(1)))
@@ -92,7 +93,6 @@ model.compile(
   optimizer='adam',
   loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
   metrics=['accuracy'])
-
 EPOCHS = 2
 history = model.fit(train_batches,
                     epochs=EPOCHS,
