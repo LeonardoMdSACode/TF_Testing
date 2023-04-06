@@ -107,7 +107,7 @@ print(seed_text)
 
 print("Varying the Possible Outputs")
 # Test the method with just the first word after the seed text
-seed_text = "im feeling chills"
+seed_text = "Tell me a story about"
 next_words = 100
 
 token_list = tokenizer.texts_to_sequences([seed_text])[0]
