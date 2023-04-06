@@ -137,14 +137,13 @@ model = tf.keras.models.Sequential([
 
    tf.keras.layers.Dense(512, activation='relu'),
    tf.keras.layers.Dropout(0.5),
-
    tf.keras.layers.Dense(2, activation='sigmoid') # 1=0.789
 ])
 
 
 print("Compile model")
 model.compile(optimizer='adam',
-              loss='binary_crossentropy',
+              loss='sparse_categorical_crossentropy',
               metrics=['accuracy'])
 
 print('Model Summary')
