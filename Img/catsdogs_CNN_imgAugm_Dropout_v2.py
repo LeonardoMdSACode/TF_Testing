@@ -138,7 +138,7 @@ model = tf.keras.models.Sequential([
    tf.keras.layers.Dense(512, activation='relu'),
    tf.keras.layers.Dropout(0.5),
 
-   tf.keras.layers.Dense(1, activation='sigmoid')
+   tf.keras.layers.Dense(2, activation='sigmoid') # 1=0.789
 ])
 
 
@@ -163,4 +163,4 @@ history = model.fit(
 )
 
 print("Validation Accuracy:", history.history['val_accuracy'][-1])
-# 15=0.732
+
