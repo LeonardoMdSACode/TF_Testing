@@ -41,32 +41,39 @@ print("Total validation images: ", total_val)
 
 # Model Parameters
 print("Parameters")
-BATCH_SIZE = 100  # Number of examples processed b4 updating model variables thro feedback loop
-IMG_SHAPE = 150  # 150x150 pixels
+BATCH_SIZE = 64  # Number of examples processed b4 updating model variables thro feedback loop
+IMG_SHAPE = 160  # 160x160 pixels
 
 # Data Prep
 print("Data prep")
 print("ImageDataGenerator")
 print(".flow_from_directory")
 print("train and validation datasets")
-train_image_generator = ImageDataGenerator(rescale=1. / 255)  # Generator training data
+train_image_generator = ImageDataGenerator(rescale=1. / 255,
+rotation_range=15,
+width_shift_range=0.1,
+height_shift_range=0.1,
+shear_range=0.1,
+zoom_range=[0.8, 1.2],
+horizontal_flip=True,
+fill_mode='nearest')  # Generator training data
 validation_image_generator = ImageDataGenerator(rescale=1. / 255)  # Generator validation data
 
 train_data_gen = train_image_generator.flow_from_directory(batch_size=BATCH_SIZE,
                                                            directory=train_dir,
                                                            shuffle=True,
-                                                           target_size=(IMG_SHAPE, IMG_SHAPE),  # (150,150)
+                                                           target_size=(IMG_SHAPE, IMG_SHAPE),  # (160,160)
                                                            class_mode='binary')
 val_data_gen = validation_image_generator.flow_from_directory(batch_size=BATCH_SIZE,
                                                               directory=validation_dir,
                                                               shuffle=False,
-                                                              target_size=(IMG_SHAPE, IMG_SHAPE),  # (150,150)
+                                                              target_size=(IMG_SHAPE, IMG_SHAPE),  # (160,160)
                                                               class_mode='binary')
 # Define Model
 print("CNN")
 print(".Sequential")
 model = tf.keras.models.Sequential([
-   tf.keras.layers.Conv2D(32, (3, 3), activation='relu', input_shape=(150, 150, 3)),
+   tf.keras.layers.Conv2D(32, (3, 3), activation='relu', input_shape=(160, 160, 3)),
    tf.keras.layers.MaxPooling2D(2, 2),
 
    tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
@@ -75,26 +82,30 @@ model = tf.keras.models.Sequential([
    tf.keras.layers.Conv2D(128, (3, 3), activation='relu'),
    tf.keras.layers.MaxPooling2D(2, 2),
 
-   tf.keras.layers.Conv2D(128, (3, 3), activation='relu'),
+   tf.keras.layers.Conv2D(256, (3, 3), activation='relu'),
+   tf.keras.layers.MaxPooling2D(2, 2),
+
+   tf.keras.layers.Conv2D(256, (3, 3), activation='relu'),
    tf.keras.layers.MaxPooling2D(2, 2),
 
    tf.keras.layers.Flatten(),
    tf.keras.layers.Dense(512, activation='relu'),
+   tf.keras.layers.Dropout(0.5),
+   tf.keras.layers.Dense(128, activation='relu'),
    tf.keras.layers.Dense(2, activation='softmax')
 ])
 
 print("Compile model")
-model.compile(optimizer='adam',
+optimizer = tf.keras.optimizers.Adam(lr=0.0001)
+model.compile(optimizer=optimizer,
               loss='sparse_categorical_crossentropy',
               metrics=['accuracy'])
 
 print('Model Summary')
-print(".sumary()")
 model.summary()
 
 print("Training Model:")
-print(".fit")
-EPOCHS = 7
+EPOCHS = 20
 history = model.fit(
    train_data_gen,
    steps_per_epoch=int(np.ceil(total_train / float(BATCH_SIZE))),
@@ -104,4 +115,4 @@ history = model.fit(
 )
 
 print("Validation Accuracy:", history.history['val_accuracy'][-1])
-# 7=0.68
+# 7=0.738

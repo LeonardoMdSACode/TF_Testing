@@ -64,7 +64,7 @@ model.fit(train_ds, epochs=5,
 # Evaluate metrics=accu
 print(".evaluate")
 test_loss, test_accuracy = model.evaluate(test_ds, steps=math.ceil(num_test_examples / BATCH_SIZE))
-print("Accuracy on test dataset: ", test_accuracy)
+print("Accuracy on test dataset: ", test_accuracy) # 0.87
 
 # predict
 print("predict")

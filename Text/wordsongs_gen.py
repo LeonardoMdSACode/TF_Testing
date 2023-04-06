@@ -78,6 +78,7 @@ model.add(Embedding(total_words, 64, input_length=max_sequence_len-1))
 model.add(Bidirectional(LSTM(20)))
 model.add(Dense(total_words, activation='softmax'))
 model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+
 history = model.fit(input_sequences, one_hot_labels, epochs=100, verbose=1)
 
 print("View the Training Graph")
@@ -135,55 +136,3 @@ for _ in range(next_words):
          break
    seed_text += " " + output_word
 print(seed_text)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

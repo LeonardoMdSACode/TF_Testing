@@ -44,7 +44,7 @@ print("Total validation images: ", total_val)
 
 # Model Parameters
 print("Parameters")
-BATCH_SIZE = 100  # Number of examples processed b4 updating model variables thro feedback loop
+BATCH_SIZE = 32  # Number of examples processed b4 updating model variables thro feedback loop
 IMG_SHAPE = 150  # 150x150 pixels
 
 # DATA AUGMENTATION
@@ -68,7 +68,7 @@ train_data_gen = image_gen.flow_from_directory(batch_size=BATCH_SIZE,
                                                shuffle=True,
                                                target_size=(IMG_SHAPE, IMG_SHAPE))
 augmented_images = [train_data_gen[0][0][0] for i in range(5)]
-plotImages(augmented_images)
+# plotImages(augmented_images)
 print("Flipping imgs")
 
 # Rotating the image
@@ -78,7 +78,7 @@ train_data_gen = image_gen.flow_from_directory(batch_size=BATCH_SIZE,
                                                shuffle=True,
                                                target_size=(IMG_SHAPE, IMG_SHAPE))
 augmented_images = [train_data_gen[0][0][0] for i in range(5)]
-plotImages(augmented_images)
+# plotImages(augmented_images)
 print("Rotated imgs")
 
 # Applying Zoom
@@ -88,13 +88,13 @@ train_data_gen = image_gen.flow_from_directory(batch_size=BATCH_SIZE,
                                                shuffle=True,
                                                target_size=(IMG_SHAPE, IMG_SHAPE))
 augmented_images =  [train_data_gen[0][0][0] for i in range(5)]
-plotImages(augmented_images)
+# plotImages(augmented_images)
 print("Zoom Applied")
 
 # Join everything
 image_gen_train = ImageDataGenerator(
    rescale=1. / 255,
-   rotation_range=40,
+   rotation_range=20,
    width_shift_range=0.2,
    height_shift_range=0.2,
    shear_range=0.2,
@@ -108,7 +108,7 @@ train_data_gen = image_gen_train.flow_from_directory(batch_size=BATCH_SIZE,
                                                      class_mode='binary')
 
 augmented_images = [train_data_gen[0][0][0] for i in range(5)]
-plotImages(augmented_images)
+# plotImages(augmented_images)
 
 # Validation Dataset Generator
 image_gen_val = ImageDataGenerator(rescale=1. / 255)
@@ -130,18 +130,21 @@ model = tf.keras.models.Sequential([
    tf.keras.layers.Conv2D(128, (3, 3), activation='relu'),
    tf.keras.layers.MaxPooling2D(2, 2),
 
-   tf.keras.layers.Conv2D(128, (3, 3), activation='relu'),
+   tf.keras.layers.Conv2D(256, (3, 3), activation='relu'),
    tf.keras.layers.MaxPooling2D(2, 2),
 
-   tf.keras.layers.Dropout(0.5),
    tf.keras.layers.Flatten(),
+
    tf.keras.layers.Dense(512, activation='relu'),
-   tf.keras.layers.Dense(2, activation='softmax')
+   tf.keras.layers.Dropout(0.5),
+
+   tf.keras.layers.Dense(1, activation='sigmoid')
 ])
+
 
 print("Compile model")
 model.compile(optimizer='adam',
-              loss='sparse_categorical_crossentropy',
+              loss='binary_crossentropy',
               metrics=['accuracy'])
 
 print('Model Summary')
@@ -150,7 +153,7 @@ model.summary()
 
 print("Training Model:")
 print(".fit")
-EPOCHS = 15
+EPOCHS = 50
 history = model.fit(
    train_data_gen,
    steps_per_epoch=int(np.ceil(total_train / float(BATCH_SIZE))),

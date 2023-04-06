@@ -201,8 +201,7 @@ num_epochs = 30
 
 model_multiple_bidi_lstm = tf.keras.Sequential([
     tf.keras.layers.Embedding(vocab_size, embedding_dim, input_length=max_length),
-    tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(embedding_dim,
-                                                       return_sequences=True)),
+    tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(embedding_dim, return_sequences=True)),
     tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(embedding_dim)),
     tf.keras.layers.Dense(1, activation='sigmoid')
 ])

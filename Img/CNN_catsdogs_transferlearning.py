@@ -123,6 +123,7 @@ predicted_batch = tf.squeeze(predicted_batch).numpy()
 predicted_ids = np.argmax(predicted_batch, axis=-1)
 predicted_class_names = class_names[predicted_ids]
 predicted_class_names
+print("validation accuracy: ", history.history['val_accuracy'][-1]) # 0.988
 print("Labels: ", label_batch)
 print("Predicted labels: ", predicted_ids)
 plt.figure(figsize=(10,9))

@@ -10,13 +10,13 @@ tqdm.tqdm = tqdm.auto.tqdm
 ds, md = tfds.load('fashion_mnist', as_supervised=True, with_info=True)
 train_ds, test_ds = ds['train'], ds['test']
 
-class_names = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat',               'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle boot']
+class_names = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat',
+'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle boot']
 
 num_train_examples = md.splits['train'].num_examples
 num_test_examples = md.splits['test'].num_examples
 print("Number of training examples: {}".format(num_train_examples))
-print("Number of test examples:   {}".format(num_test_examples))
-
+print("Number of test examples: {}".format(num_test_examples))
 
 # normalize/preprocess data
 def normalize(images, labels):
@@ -24,48 +24,45 @@ def normalize(images, labels):
    images /= 255
    return images, labels
 
-
 train_ds = train_ds.map(normalize)
 test_ds = test_ds.map(normalize)
 
-# Flat+2Dense
-print("1flat+2dense layers")
-flat_layer = tf.keras.layers.Flatten(input_shape=(28, 28, 1))
-dense_layer1 = tf.keras.layers.Dense(256, activation=tf.nn.relu) # increase neurons
-dropout_layer = tf.keras.layers.Dropout(0.2) # add dropout layer
-dense_layer2 = tf.keras.layers.Dense(10, activation=tf.nn.softmax)
-# Sequential
-print(".Sequential (defining model from layers)")
+# Convolutional Neural Network
+print("Convolutional Neural Network")
 model = tf.keras.Sequential([
-   flat_layer,
-   dense_layer1,
-   dropout_layer,
-   dense_layer2
+tf.keras.layers.Conv2D(32, (3, 3), padding='same', activation=tf.nn.relu, input_shape=(28, 28, 1)),
+tf.keras.layers.MaxPooling2D((2, 2), strides=2),
+tf.keras.layers.Conv2D(64, (3, 3), padding='same', activation=tf.nn.relu),
+tf.keras.layers.MaxPooling2D((2, 2), strides=2),
+tf.keras.layers.Flatten(),
+tf.keras.layers.Dense(128, activation=tf.nn.relu),
+tf.keras.layers.Dense(10, activation=tf.nn.softmax)
 ])
+
 # compile
 print(".compile")
 model.compile(optimizer='adam',
-              loss='sparse_categorical_crossentropy',
-              metrics=['accuracy']) # use list instead of string
+loss='sparse_categorical_crossentropy',
+metrics=['accuracy'])
 
 # Divide datasets
 print("Separate train from validation datasets")
-BATCH_SIZE = 64 # increase batch size
+BATCH_SIZE = 32
 train_ds = train_ds.repeat().shuffle(num_train_examples).batch(BATCH_SIZE)
 test_ds = test_ds.batch(BATCH_SIZE)
 
 # fit
 print(".fit")
-EPOCHS = 10 # increase epochs
+EPOCHS = 10
 model.fit(train_ds, epochs=EPOCHS,
-          steps_per_epoch=math.ceil(num_train_examples / BATCH_SIZE),
-          validation_data=test_ds,
-          validation_steps=math.ceil(num_test_examples / BATCH_SIZE))
+steps_per_epoch=math.ceil(num_train_examples / BATCH_SIZE),
+validation_data=test_ds,
+validation_steps=math.ceil(num_test_examples / BATCH_SIZE))
 
 # Evaluate metrics=accu
 print(".evaluate")
 test_loss, test_accuracy = model.evaluate(test_ds, steps=math.ceil(num_test_examples / BATCH_SIZE))
-print("Accuracy on test dataset: ", test_accuracy)
+print("Accuracy on test dataset: ", test_accuracy) # 0.92
 
 # predict
 print("predict")
