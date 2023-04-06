@@ -84,19 +84,33 @@ tf.random.set_seed(42)
 np.random.seed(42)
 
 window_size = 30
-train_set = seq2seq_window_dataset(x_train, window_size, batch_size=128)
+train_set = seq2seq_window_dataset(x_train, window_size,
+                                   batch_size=128)
 
 model = keras.models.Sequential([
-   keras.layers.Conv1D(filters=32, kernel_size=5,
-                       strides=1, padding="causal",
-                       activation="relu",
-                       input_shape=[None, 1]),
-   keras.layers.LSTM(32, return_sequences=True),
-   keras.layers.LSTM(32, return_sequences=True),
-   keras.layers.Dense(1),
-   keras.layers.Lambda(lambda x: x * 200)
+  keras.layers.Conv1D(filters=32, kernel_size=5,
+                      strides=1, padding="causal",
+                      activation="relu",
+                      input_shape=[None, 1]),
+  keras.layers.LSTM(32, return_sequences=True),
+  keras.layers.LSTM(32, return_sequences=True),
+  keras.layers.Dense(1),
+  keras.layers.Lambda(lambda x: x * 200)
 ])
 model.summary()
+
+lr_schedule = keras.callbacks.LearningRateScheduler(
+    lambda epoch: 1e-8 * 10**(epoch / 20))
+optimizer = keras.optimizers.SGD(lr=1e-8, momentum=0.9)
+model.compile(loss=keras.losses.Huber(),
+              optimizer=optimizer,
+              metrics=["mae"])
+history = model.fit(train_set, epochs=100, callbacks=[lr_schedule])
+
+plt.semilogx(history.history["lr"], history.history["loss"])
+plt.axis([1e-8, 1e-4, 0, 30])
+plt.show()
+
 keras.backend.clear_session()
 tf.random.set_seed(42)
 np.random.seed(42)
@@ -123,47 +137,7 @@ model.compile(loss=keras.losses.Huber(),
               metrics=["mae"])
 
 model_checkpoint = keras.callbacks.ModelCheckpoint(
-    "my_checkpoint2.h5", save_best_only=True)
-early_stopping = keras.callbacks.EarlyStopping(patience=50)
-model.fit(train_set, epochs=500,
-          validation_data=valid_set,
-          callbacks=[early_stopping, model_checkpoint])
-lr_schedule = keras.optimizers.SGD(lr=1e-8, momentum=0.9)
-model.compile(loss=keras.losses.Huber(),
-              optimizer=optimizer,
-              metrics=["mae"])
-history = model.fit(train_set, epochs=100, callbacks=[lr_schedule])
-
-plt.semilogx(history.history["lr"], history.history["loss"])
-plt.axis([1e-8, 1e-4, 0, 30])
-plt.show()
-
-keras.backend.clear_session()
-tf.random.set_seed(42)
-np.random.seed(42)
-
-window_size = 30
-train_set = seq2seq_window_dataset(x_train, window_size, batch_size=128)
-valid_set = seq2seq_window_dataset(x_valid, window_size, batch_size=128)
-
-model = keras.models.Sequential([
-   keras.layers.Conv1D(filters=32, kernel_size=5,
-                       strides=1, padding="causal",
-                       activation="relu",
-                       input_shape=[None, 1]),
-   keras.layers.LSTM(32, return_sequences=True),
-   keras.layers.LSTM(32, return_sequences=True),
-   keras.layers.Dense(1),
-   keras.layers.Lambda(lambda x: x * 200)
-])
-model.summary()
-optimizer = keras.optimiers.SGD(lr=1e-5, momentum=0.9)
-model.compile(loss=keras.losses.Huber(),
-              optimizer=optimizer,
-              metrics=["mae"])
-
-model_checkpoint = keras.callbacks.ModelCheckpoint(
-   "my_checkpoint3.h5", save_best_only=True)
+    "my_checkpoint3.h5", save_best_only=True)
 early_stopping = keras.callbacks.EarlyStopping(patience=50)
 model.fit(train_set, epochs=500,
           validation_data=valid_set,
@@ -180,32 +154,32 @@ plot_series(time_valid, rnn_forecast)
 plt.show()
 
 mae_value = keras.metrics.mean_absolute_error(x_valid, rnn_forecast).numpy()
-print(mae_value)
+print("mae: ", mae_value)
 
-# CNN
-print("Fully Convolutional Forecasting")
+# Fully Convolutional Forecasting CNN
+print("Fully Convolutional Forecasting - CNN")
 keras.backend.clear_session()
 tf.random.set_seed(42)
 np.random.seed(42)
 
 window_size = 64
-train_set = seq2seq_window_dataset(x_train, window_size, batch_size=128)
+train_set = seq2seq_window_dataset(x_train, window_size,
+                                   batch_size=128)
 
 model = keras.models.Sequential()
 model.add(keras.layers.InputLayer(input_shape=[None, 1]))
-for dilation_rate in (1, 2, 4, 6, 16, 32):
-   model.add(
+for dilation_rate in (1, 2, 4, 8, 16, 32):
+    model.add(
       keras.layers.Conv1D(filters=32,
                           kernel_size=2,
                           strides=1,
                           dilation_rate=dilation_rate,
                           padding="causal",
                           activation="relu")
-   )
+    )
 model.add(keras.layers.Conv1D(filters=1, kernel_size=1))
 lr_schedule = keras.callbacks.LearningRateScheduler(
-   lambda epoch: 1e-4 * 10**(epoch / 30))
-model.summary()
+    lambda epoch: 1e-4 * 10**(epoch / 30))
 optimizer = keras.optimizers.Adam(lr=1e-4)
 model.compile(loss=keras.losses.Huber(),
               optimizer=optimizer,
@@ -221,31 +195,37 @@ tf.random.set_seed(42)
 np.random.seed(42)
 
 window_size = 64
-train_set = seq2seq_window_dataset(x_train, window_size, batch_size=128)
-valid_set = seq2seq_window_dataset(x_valid, window_size, batch_size=128)
+train_set = seq2seq_window_dataset(x_train, window_size,
+                                   batch_size=128)
+valid_set = seq2seq_window_dataset(x_valid, window_size,
+                                   batch_size=128)
+
 model = keras.models.Sequential()
 model.add(keras.layers.InputLayer(input_shape=[None, 1]))
 for dilation_rate in (1, 2, 4, 8, 16, 32):
-   model.add(keras.layers.Conv1D(filters=32,
-                                 strides=1,
-                                 dilation_rate=dilation_rate,
-                                 padding="causal",
-                                 activation="relu")
-             )
+    model.add(
+      keras.layers.Conv1D(filters=32,
+                          kernel_size=2,
+                          strides=1,
+                          dilation_rate=dilation_rate,
+                          padding="causal",
+                          activation="relu")
+    )
 model.add(keras.layers.Conv1D(filters=1, kernel_size=1))
-model.summary()
 optimizer = keras.optimizers.Adam(lr=3e-4)
 model.compile(loss=keras.losses.Huber(),
               optimizer=optimizer,
               metrics=["mae"])
 
 model_checkpoint = keras.callbacks.ModelCheckpoint(
-   "my_checkpoint4.h5", save_best_only=True)
+    "my_checkpoint4.h5", save_best_only=True)
 early_stopping = keras.callbacks.EarlyStopping(patience=50)
 history = model.fit(train_set, epochs=500,
                     validation_data=valid_set,
                     callbacks=[early_stopping, model_checkpoint])
+
 model = keras.models.load_model("my_checkpoint4.h5")
+
 cnn_forecast = model_forecast(model, series[..., np.newaxis], window_size)
 cnn_forecast = cnn_forecast[split_time - window_size:-1, -1, 0]
 
@@ -255,7 +235,4 @@ plot_series(time_valid, cnn_forecast)
 plt.show()
 
 mae_value = keras.metrics.mean_absolute_error(x_valid, cnn_forecast).numpy()
-print(mae_value)
-
-
-
+print("mae: ", mae_value)

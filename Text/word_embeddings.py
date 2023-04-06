@@ -86,6 +86,7 @@ model = Sequential([
   Dense(16, activation='relu'),
   Dense(1)
 ])
+model.summary()
 
 tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir="logs")
 
