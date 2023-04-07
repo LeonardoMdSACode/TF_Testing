@@ -143,7 +143,7 @@ def fit_model_and_show_results (model, reviews):
 
 print("\n Model with Embedding")
 num_epochs = 20
-
+# loss: 0.3088 - accuracy: 0.8697 - val_loss: 0.5204 - val_accuracy: 0.7638
 model_embedding = tf.keras.Sequential([
     tf.keras.layers.Embedding(vocab_size, embedding_dim, input_length=max_length),
     tf.keras.layers.GlobalAveragePooling1D(),
@@ -156,7 +156,7 @@ fit_model_and_show_results(model_embedding, new_reviews)
 
 print("\n Use a CNN")
 num_epochs = 30
-
+# loss: 0.2397 - accuracy: 0.8957 - val_loss: 0.5576 - val_accuracy: 0.7569
 model_cnn = tf.keras.Sequential([
     tf.keras.layers.Embedding(vocab_size, embedding_dim, input_length=max_length),
     tf.keras.layers.Conv1D(16, 5, activation='relu'),
@@ -172,7 +172,7 @@ fit_model_and_show_results(model_cnn, new_reviews)
 
 print("\nUse a GRU")
 num_epochs = 30
-
+# loss: 0.3550 - accuracy: 0.8462 - val_loss: 0.5886 - val_accuracy: 0.7729
 model_gru = tf.keras.Sequential([
     tf.keras.layers.Embedding(vocab_size, embedding_dim, input_length=max_length),
     tf.keras.layers.Bidirectional(tf.keras.layers.GRU(32)),
@@ -185,7 +185,7 @@ fit_model_and_show_results(model_gru, new_reviews)
 
 print("\nAdd a bidirectional LSTM")
 num_epochs = 30
-
+# loss: 0.4655 - accuracy: 0.8057 - val_loss: 0.7013 - val_accuracy: 0.4450
 model_bidi_lstm = tf.keras.Sequential([
     tf.keras.layers.Embedding(vocab_size, embedding_dim, input_length=max_length),
     tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(embedding_dim)),
@@ -196,9 +196,9 @@ learning_rate = 0.00003
 
 fit_model_and_show_results(model_bidi_lstm, new_reviews)
 
-print("\nUse multiple bidirectional LSTMs")
+print("\nUse multiple bidirectional LSTMs = RNN")
 num_epochs = 30
-
+# loss: 0.1329 - accuracy: 0.9338 - val_loss: 1.6815 - val_accuracy: 0.4083
 model_multiple_bidi_lstm = tf.keras.Sequential([
     tf.keras.layers.Embedding(vocab_size, embedding_dim, input_length=max_length),
     tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(embedding_dim, return_sequences=True)),

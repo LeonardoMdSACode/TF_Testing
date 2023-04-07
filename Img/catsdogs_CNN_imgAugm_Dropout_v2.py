@@ -143,7 +143,7 @@ model = tf.keras.models.Sequential([
 
 print("Compile model")
 model.compile(optimizer='adam',
-              loss='sparse_categorical_crossentropy', # binary if 1 finshing neuron
+              loss='sparse_categorical_crossentropy', # binary if 1 finishing neuron
               metrics=['accuracy'])
 
 print('Model Summary')

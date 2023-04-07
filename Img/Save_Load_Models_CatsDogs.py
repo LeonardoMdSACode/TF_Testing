@@ -2,11 +2,9 @@ import os
 import time
 import numpy as np
 import matplotlib.pylab as plt
-
 import tensorflow as tf
 import tensorflow_hub as hub
 import tensorflow_datasets as tfds
-
 from tensorflow.keras import layers
 
 print("Part 1: Load the Cats vs. Dogs Dataset")
@@ -78,6 +76,9 @@ for n in range(30):
   plt.title(predicted_class_names[n].title(), color=color)
   plt.axis('off')
 _ = plt.suptitle("Model predictions (blue: correct, red: incorrect)")
+plt.show()
+
+print("val_accuracy: ", history.history['val_accuracy'][-1])
 
 print("Part 3: Save as Keras .h5 model")
 t = time.time()
@@ -110,11 +111,11 @@ history = reloaded.fit(train_batches,
 print("Part 5: Export as SavedModel")
 t = time.time()
 
-export_path_sm = "./{}".format(int(t))
+export_path_sm = "./{}.h5".format(int(t))
 print(export_path_sm)
 
 tf.saved_model.save(model, export_path_sm)
-os.system('ls {}'.format(export_path_sm))
+os.system('ls'.format(export_path_sm))
 print("Model size: ", os.path.getsize(export_path_sm))
 
 print("Part 6: Load SavedModel")
@@ -125,7 +126,7 @@ reload_sm_result_batch = reloaded_sm(image_batch, training=False).numpy()
 print("Part 7: Loading the SavedModel as a Keras Model")
 t = time.time()
 
-export_path_sm = "./{}".format(int(t))
+export_path_sm = "./{}.h5".format(int(t))
 print(export_path_sm)
 tf.saved_model.save(model, export_path_sm)
 print("Model size: ", os.path.getsize(export_path_sm))
@@ -141,129 +142,7 @@ reload_sm_keras_result_batch = reload_sm_keras.predict(image_batch)
 
 print("Part 8: Download your model")
 # Zip the contents of export_path_sm directory
-os.system('zip -r model.zip {}'.format(export_path_sm))
+os.system('zip -r model.zip {}.h5'.format(export_path_sm))
 
 # List the files and directories in the current directory
 os.system('ls')
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -5,7 +5,7 @@ import shutil
 import string
 import tensorflow as tf
 from tensorflow.keras import Sequential
-from tensorflow.keras.layers import Dense, Embedding, GlobalAveragePooling1D
+from tensorflow.keras.layers import Dense, Embedding, GlobalAveragePooling1D, Conv1D, MaxPooling1D, Dropout
 from tensorflow.keras.layers import TextVectorization
 
 url = "https://ai.stanford.edu/~amaas/data/sentiment/aclImdb_v1.tar.gz"
@@ -42,7 +42,8 @@ train_ds = train_ds.cache().prefetch(buffer_size=AUTOTUNE)
 val_ds = val_ds.cache().prefetch(buffer_size=AUTOTUNE)
 
 # Embed a 1,000 word vocabulary into 5 dimensions.
-embedding_layer = tf.keras.layers.Embedding(1000, 5)
+embedding_dim = 16
+embedding_layer = tf.keras.layers.Embedding(10000, embedding_dim)
 
 result = embedding_layer(tf.constant([1, 2, 3]))
 result.numpy()
@@ -76,31 +77,39 @@ vectorize_layer = TextVectorization(
 text_ds = train_ds.map(lambda x, y: x)
 vectorize_layer.adapt(text_ds)
 
-embedding_dim = 16
-
 model = Sequential([
    vectorize_layer,
-   Embedding(vocab_size, embedding_dim, name="embedding"),
+   embedding_layer,
+   Conv1D(128, 5, activation='relu', padding='same'),
+   MaxPooling1D(2),
+   Dropout(0.2),
+   Conv1D(256, 5, activation='relu', padding='same'),
+   MaxPooling1D(2),
+   Dropout(0.2),
+   Conv1D(512, 5, activation='relu', padding='same'),
    GlobalAveragePooling1D(),
+   Dense(32, activation='relu'),
    Dense(16, activation='relu'),
-   Dense(1)
+   Dense(1, activation='sigmoid')
 ])
 model.summary()
 
 tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir="logs")
 
 model.compile(optimizer='adam',
-              loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
+              loss=tf.keras.losses.BinaryCrossentropy(),
               metrics=['accuracy'])
 
-EPOCHS: int = 15
+EPOCHS: int = 16
 model.fit(
    train_ds,
    validation_data=val_ds,
    epochs=EPOCHS,
    callbacks=[tensorboard_callback])
 
-# 15 accuracy: 0.8321 - val_loss: 0.4307 - val_accuracy: 0.7824
+# 15: accuracy: 0.9211 - val_loss: 0.4022 - val_accuracy: 0.8358
+print("\n")
+val_loss, val_acc = model.evaluate(val_ds)
 
 weights = model.get_layer('embedding').get_weights()[0]
 vocab = vectorize_layer.get_vocabulary()
