@@ -31,20 +31,30 @@ for cl in classes:
    train, val = images[:num_train], images[num_train:]
 
    for t in train:
-      if not os.path.exists(os.path.join(base_dir, 'train', cl)):
-         os.makedirs(os.path.join(base_dir, 'train', cl))
-      shutil.move(t, os.path.join(base_dir, 'train', cl))
+      dst_dir = os.path.join(base_dir, 'train', cl)
+      dst_file = os.path.join(dst_dir, os.path.basename(t))
+      if not os.path.exists(dst_file):
+         if not os.path.exists(dst_dir):
+            os.makedirs(dst_dir)
+         shutil.move(t, dst_file)
+      else:
+         print(f'Skipping {t}. File {dst_file} already exists.')
 
    for v in val:
-      if not os.path.exists(os.path.join(base_dir, 'val', cl)):
-         os.makedirs(os.path.join(base_dir, 'val', cl))
-      shutil.move(v, os.path.join(base_dir, 'val', cl))
+      dst_dir = os.path.join(base_dir, 'val', cl)
+      dst_file = os.path.join(dst_dir, os.path.basename(t))
+      if not os.path.exists(dst_file):
+         if not os.path.exists(dst_dir):
+            os.makedirs(dst_dir)
+         shutil.move(t, dst_file)
+      else:
+         print(f'Skipping {v}. File {dst_file} already exists.')
 
 round(len(images)*0.8)
 train_dir = os.path.join(base_dir, 'train')
 val_dir = os.path.join(base_dir, 'val')
 
-batch_size = 100
+batch_size = 45
 IMG_SHAPE = 150
 
 print("Apply Random Horizontal Flip")
@@ -64,7 +74,7 @@ def plotImages(images_arr):
    plt.tight_layout()
    plt.show()
 augmented_images = [train_data_gen[0][0][0] for i in range(5)]
-plotImages(augmented_images)
+# plotImages(augmented_images)
 
 print("Apply Random Rotation")
 image_gen = ImageDataGenerator(rescale=1./255, rotation_range=45)
@@ -73,7 +83,7 @@ train_data_gen = image_gen.flow_from_directory(batch_size=batch_size,
                                                shuffle=True,
                                                target_size=(IMG_SHAPE, IMG_SHAPE))
 augmented_images = [train_data_gen[0][0][0] for i in range(5)]
-plotImages(augmented_images)
+# plotImages(augmented_images)
 
 print("Apply Random Zoom")
 image_gen = ImageDataGenerator(rescale=1./255, zoom_range=0.5)
@@ -84,7 +94,7 @@ train_data_gen = image_gen.flow_from_directory(
                                                 target_size=(IMG_SHAPE, IMG_SHAPE)
                                                 )
 augmented_images = [train_data_gen[0][0][0] for i in range(5)]
-plotImages(augmented_images)
+# plotImages(augmented_images)
 
 print("Put it all Together")
 image_gen_train = ImageDataGenerator(
@@ -103,7 +113,7 @@ train_data_gen = image_gen_train.flow_from_directory(
                                                 class_mode='sparse'
                                                 )
 augmented_images = [train_data_gen[0][0][0] for i in range(5)]
-plotImages(augmented_images)
+# plotImages(augmented_images)
 
 print("Create aData Generator for the Validation Set")
 image_gen_val = ImageDataGenerator(rescale=1./255)
@@ -113,26 +123,40 @@ val_data_gen = image_gen_val.flow_from_directory(batch_size=batch_size,
                                                  class_mode='sparse')
 
 print("Create CNN")
-model = Sequential()
-model.add(Conv2D(16, 3, padding='same', activation='relu', input_shape=(IMG_SHAPE,IMG_SHAPE, 3)))
-model.add(MaxPooling2D(pool_size=(2, 2)))
-model.add(Conv2D(32, 3, padding='same', activation='relu'))
-model.add(MaxPooling2D(pool_size=(2, 2)))
-model.add(Conv2D(64, 3, padding='same', activation='relu'))
-model.add(MaxPooling2D(pool_size=(2, 2)))
-model.add(Flatten())
-model.add(Dropout(0.2))
-model.add(Dense(512, activation='relu'))
-model.add(Dropout(0.2))
-model.add(Dense(5))
+data_augmentation = tf.keras.Sequential([
+  tf.keras.layers.experimental.preprocessing.RandomFlip("horizontal"),
+  tf.keras.layers.experimental.preprocessing.RandomRotation(0.2),
+  tf.keras.layers.experimental.preprocessing.RandomZoom(0.2),
+])
+
+base_model = tf.keras.applications.ResNet50V2(
+    weights='imagenet',  # Load weights pre-trained on ImageNet.
+    input_shape=(IMG_SHAPE,IMG_SHAPE,3),
+    include_top=False)
+
+for layer in base_model.layers:
+    layer.trainable = False
+
+inputs = tf.keras.Input(shape=(IMG_SHAPE,IMG_SHAPE,3))
+x = data_augmentation(inputs)
+x = base_model(x, training=False)
+x = tf.keras.layers.GlobalAveragePooling2D()(x)
+x = tf.keras.layers.Dropout(0.2)(x)
+outputs = tf.keras.layers.Dense(5)(x)
+model = tf.keras.Model(inputs, outputs)
 
 print("Compile Model   .compile")
-model.compile(optimizer='adam',
+lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
+    initial_learning_rate=1e-3,
+    decay_steps=10000,
+    decay_rate=0.9)
+
+model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=lr_schedule),
               loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
               metrics=['accuracy'])
 
 print("Train the Model")
-epochs = 8
+epochs = 20
 history = model.fit(
     train_data_gen,
     steps_per_epoch=int(np.ceil(train_data_gen.n / float(batch_size))),
@@ -141,6 +165,10 @@ history = model.fit(
     validation_steps=int(np.ceil(val_data_gen.n / float(batch_size)))
 )
 # epochs = 8 loss: 0.8837 - accuracy: 0.6596 - val_loss: 0.7550 - val_accuracy: 0.7252
+# 0.735 for batch 66 18 epochs
+# 0.743 batch 100 20epochs
+# 0.755 batch 45 20epochs
+# 0.805 ResNet50V2
 
 print("val_accuracy: ", history.history['val_accuracy'][-1])
 

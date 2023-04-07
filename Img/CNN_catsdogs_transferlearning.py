@@ -93,7 +93,7 @@ model.compile(
   optimizer='adam',
   loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
   metrics=['accuracy'])
-EPOCHS = 1
+EPOCHS = 3
 history = model.fit(train_batches,
                     epochs=EPOCHS,
                     validation_data=validation_batches)
@@ -115,6 +115,8 @@ plt.legend(loc='upper right')
 plt.title('Training and Validation Loss')
 plt.show()
 
+print("val_accuracy: ", val_acc[-1])
+
 print("Check predictions")
 class_names = np.array(info.features['label'].names)
 class_names
@@ -125,6 +127,7 @@ predicted_class_names = class_names[predicted_ids]
 predicted_class_names
 print("validation accuracy: ", history.history['val_accuracy'][-1]) # 0.988
 print("Labels: ", label_batch)
+
 print("Predicted labels: ", predicted_ids)
 plt.figure(figsize=(10,9))
 for n in range(30):
@@ -135,3 +138,4 @@ for n in range(30):
   plt.title(predicted_class_names[n].title(), color=color)
   plt.axis('off')
 _ = plt.suptitle("Model predictions (blue: correct, red: incorrect)")
+plt.show()
