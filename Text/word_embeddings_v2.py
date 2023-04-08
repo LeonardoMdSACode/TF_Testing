@@ -61,9 +61,8 @@ def custom_standardization(input_data):
 
 
 # Vocabulary size and number of words in a sequence.
-vocab_size = 10000
-sequence_length = 100
-
+vocab_size = 20000
+sequence_length = 250
 # Use the text vectorization layer to normalize, split, and map strings to
 # integers. Note that the layer uses the custom standardization defined above.
 # Set maximum_sequence length as all samples are not of the same length.
@@ -80,16 +79,14 @@ vectorize_layer.adapt(text_ds)
 model = Sequential([
    vectorize_layer,
    embedding_layer,
-   Conv1D(128, 5, activation='relu', padding='same'),
-   MaxPooling1D(2),
-   Dropout(0.2),
-   Conv1D(256, 5, activation='relu', padding='same'),
-   MaxPooling1D(2),
-   Dropout(0.2),
-   Conv1D(512, 5, activation='relu', padding='same'),
+   Conv1D(128, 5, activation='relu', padding='causal'),
+   MaxPooling1D(4),
+   Conv1D(256, 5, activation='relu', padding='causal'),
+   MaxPooling1D(4),
    GlobalAveragePooling1D(),
-   Dense(32, activation='relu'),
-   Dense(16, activation='relu'),
+   Dropout(0.5),
+   Dense(128, activation='relu'),
+   Dropout(0.5),
    Dense(1, activation='sigmoid')
 ])
 model.summary()
@@ -100,14 +97,14 @@ model.compile(optimizer='adam',
               loss=tf.keras.losses.BinaryCrossentropy(),
               metrics=['accuracy'])
 
-EPOCHS: int = 16
+EPOCHS: int = 5
 model.fit(
    train_ds,
    validation_data=val_ds,
    epochs=EPOCHS,
    callbacks=[tensorboard_callback])
 
-# 15: accuracy: 0.9211 - val_loss: 0.4022 - val_accuracy: 0.8358
+# 5: loss: 0.2304 - accuracy: 0.9151 - val_loss: 0.3127 - val_accuracy: 0.8766
 print("\n")
 val_loss, val_acc = model.evaluate(val_ds)
 

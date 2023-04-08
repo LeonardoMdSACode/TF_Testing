@@ -27,8 +27,7 @@ print("Tokenize the dataset with changes")
 # vocab_size = 1000
 # embedding_dim = 16
 # max_length = 100
-# trunc_type='post'
-# padding_type='post'
+
 vocab_size = 500
 embedding_dim = 16
 max_length = 50
@@ -40,10 +39,12 @@ tokenizer = Tokenizer(num_words = vocab_size, oov_token=oov_tok)
 tokenizer.fit_on_texts(training_sentences)
 word_index = tokenizer.word_index
 training_sequences = tokenizer.texts_to_sequences(training_sentences)
-training_padded = pad_sequences(training_sequences, maxlen=max_length, padding=padding_type, truncating=trunc_type)
+training_padded = pad_sequences(training_sequences, maxlen=max_length,
+                                padding=padding_type, truncating=trunc_type)
 
 testing_sequences = tokenizer.texts_to_sequences(testing_sentences)
-testing_padded = pad_sequences(testing_sequences, maxlen=max_length, padding=padding_type, truncating=trunc_type)
+testing_padded = pad_sequences(testing_sequences, maxlen=max_length,
+                               padding=padding_type, truncating=trunc_type)
 
 print("Train a Sentiment model")
 # Use GlobalAveragePooling1D instead of Flatten()
@@ -57,7 +58,8 @@ model.compile(loss='binary_crossentropy',optimizer='adam',metrics=['accuracy'])
 model.summary()
 
 num_epochs = 30
-history = model.fit(training_padded, training_labels_final, epochs=num_epochs, validation_data=(testing_padded, testing_labels_final))
+history = model.fit(training_padded, training_labels_final, epochs=num_epochs,
+                    validation_data=(testing_padded, testing_labels_final))
 
 def plot_graphs(history, string):
    plt.plot(history.history[string])

@@ -19,7 +19,8 @@ for x in range(2):
 
 print("Create a subwords dataset")
 vocab_size = 1000
-tokenizer = tfds.deprecated.text.SubwordTextEncoder.build_from_corpus(sentences, vocab_size, max_subword_length=5)
+tokenizer = tfds.deprecated.text.SubwordTextEncoder.build_from_corpus(
+   sentences, vocab_size, max_subword_length=5)
 
 # How big is the vocab size?
 print("\nVocab size is ", tokenizer.vocab_size)
@@ -76,7 +77,11 @@ model.summary()
 print("\nTrain the model")
 num_epochs = 30
 model.compile(loss='binary_crossentropy',optimizer='adam',metrics=['accuracy'])
-history = model.fit(training_sequences, training_labels_final, epochs=num_epochs, validation_data=(testing_sequences, testing_labels_final))
+history = model.fit(training_sequences, training_labels_final, epochs=num_epochs,
+                    validation_data=(testing_sequences, testing_labels_final))
+
+# Epoch 30/30
+# 50/50 [==============================] - 0s 5ms/step - loss: 0.1690 - accuracy: 0.9510 - val_loss: 0.5912 - val_accuracy: 0.7569
 
 
 def plot_graphs(history, string):
@@ -173,6 +178,8 @@ model.summary()
 
 # Compile and train the model and then show the predictions for our extra sentences
 fit_model_and_show_results(model_bidi_lstm, fake_reviews)
+# Epoch 30/30
+# 50/50 [==============================] - 1s 10ms/step - loss: 0.1783 - accuracy: 0.9642 - val_loss: 1.5663 - val_accuracy: 0.7318
 
 print("\nUse multiple bidirectional layers")
 model_multiple_bidi_lstm = tf.keras.Sequential([
@@ -186,6 +193,9 @@ model_multiple_bidi_lstm = tf.keras.Sequential([
 model.summary()
 
 fit_model_and_show_results(model_multiple_bidi_lstm, fake_reviews)
+
+# Epoch 30/30
+# 50/50 [==============================] - 1s 18ms/step - loss: 0.0756 - accuracy: 0.9818 - val_loss: 1.1458 - val_accuracy: 0.7519
 
 print("val_accuracy: ", history.history['val_accuracy'][-1])
 

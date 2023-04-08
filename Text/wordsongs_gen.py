@@ -91,7 +91,7 @@ def plot_graphs(history, string):
 plot_graphs(history, 'accuracy')
 
 print("Generate better lyrics!")
-seed_text = "im feeling chills"
+seed_text = "im feeling them chills"
 next_words = 100
 
 for _ in range(next_words):
@@ -108,7 +108,7 @@ print(seed_text)
 
 print("Varying the Possible Outputs")
 # Test the method with just the first word after the seed text
-seed_text = "Tell me a story about"
+seed_text = "im feeling them chills"
 next_words = 100
 
 token_list = tokenizer.texts_to_sequences([seed_text])[0]
@@ -120,7 +120,7 @@ predicted = np.random.choice([x for x in range(len(predicted_probs))],
 print(predicted)
 
 # Use this process for the full output generation
-seed_text = "im feeling chills"
+seed_text = "im feeling them chills"
 next_words = 100
 
 for _ in range(next_words):

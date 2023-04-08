@@ -35,8 +35,8 @@ oov_tok = "<OOV>"
 tokenizer = Tokenizer(num_words = vocab_size, oov_token=oov_tok)
 tokenizer.fit_on_texts(training_sentences)
 word_index = tokenizer.word_index
-sequences = tokenizer.texts_to_sequences(training_sentences)
-padded = pad_sequences(sequences,maxlen=max_length, padding=padding_type,
+training_sequences = tokenizer.texts_to_sequences(training_sentences)
+training_padded = pad_sequences(training_sequences,maxlen=max_length, padding=padding_type,
                        truncating=trunc_type)
 
 testing_sequences = tokenizer.texts_to_sequences(testing_sentences)
@@ -49,7 +49,7 @@ reverse_word_index = dict([(value, key) for (key, value) in word_index.items()])
 def decode_review(text):
     return ' '.join([reverse_word_index.get(i, '?') for i in text])
 
-print(decode_review(padded[1]))
+print(decode_review(training_padded[1]))
 print(training_sentences[1])
 
 print("Train a basic sentiment model with embeddings")
@@ -66,7 +66,8 @@ model.compile(loss='binary_crossentropy',optimizer='adam',metrics=['accuracy'])
 model.summary()
 
 num_epochs = 10
-model.fit(padded, training_labels_final, epochs=num_epochs, validation_data=(testing_padded, testing_labels_final))
+model.fit(training_padded, training_labels_final, epochs=num_epochs,
+          validation_data=(testing_padded, testing_labels_final))
 
 print("Get files for visualizing the network")
 # First get the weights of the embedding layer
