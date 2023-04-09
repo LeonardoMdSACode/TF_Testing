@@ -79,7 +79,7 @@ model.add(Bidirectional(LSTM(20)))
 model.add(Dense(total_words, activation='softmax'))
 model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
-history = model.fit(input_sequences, one_hot_labels, epochs=100, verbose=1)
+history = model.fit(input_sequences, one_hot_labels, epochs=100, verbose=2)
 
 print("View the Training Graph")
 def plot_graphs(history, string):

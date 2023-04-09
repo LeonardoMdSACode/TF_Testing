@@ -134,7 +134,7 @@ def fit_model_and_show_results (model, reviews):
            metrics=['accuracy'])
    model.summary()
    history = model.fit(training_padded, training_labels_final, epochs=num_epochs,
-                      validation_data=(validation_padded, validation_labels_final))
+                      validation_data=(validation_padded, validation_labels_final), verbose=2)
    plot_graphs(history, "accuracy")
    plot_graphs(history, "loss")
    predict_review(model, reviews)

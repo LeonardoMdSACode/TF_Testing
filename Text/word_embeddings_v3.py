@@ -65,7 +65,7 @@ model.compile(optimizer='adam',
 EPOCHS: int = 10
 
 model.fit(train_ds, validation_data=val_ds,
-          epochs=EPOCHS, callbacks=[tensorboard_callback])
+          epochs=EPOCHS, callbacks=[tensorboard_callback], verbose=2)
 
 # 10: loss: 0.0865 - accuracy: 0.9715 - val_loss: 0.2715 - val_accuracy: 0.9012
 print("\n")
