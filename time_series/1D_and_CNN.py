@@ -86,7 +86,8 @@ np.random.seed(42)
 window_size = 30
 train_set = seq2seq_window_dataset(x_train, window_size,
                                    batch_size=128)
-
+# 1 Convoluted layer
+# Check for the learning rate, pick 1 learning rate low and stable
 model = keras.models.Sequential([
   keras.layers.Conv1D(filters=32, kernel_size=5,
                       strides=1, padding="causal",
@@ -166,6 +167,7 @@ window_size = 64
 train_set = seq2seq_window_dataset(x_train, window_size,
                                    batch_size=128)
 
+# Check for the learning rate, pick 1 low and stable
 model = keras.models.Sequential()
 model.add(keras.layers.InputLayer(input_shape=[None, 1]))
 for dilation_rate in (1, 2, 4, 8, 16, 32):
