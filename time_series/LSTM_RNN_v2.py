@@ -58,7 +58,7 @@ series += noise
 
 plt.figure(figsize=(10, 6))
 plot_series(time, series)
-plt.show()
+# plt.show()
 
 split_time = 1000
 time_train = time[:split_time]
@@ -101,22 +101,24 @@ history = model.fit(train_set, epochs=100,
 
 plt.semilogx(history.history["lr"], history.history["loss"])
 plt.axis([1e-8, 1e-4, 0, 30])
-plt.show()
+# plt.show()
 
 keras.backend.clear_session()
-tf.random.set_seed(42)
-np.random.seed(42)
+tf.random.set_seed(38)
+np.random.seed(38)
 
-window_size = 30
+window_size = 20
 train_set = sequential_window_dataset(x_train, window_size)
 valid_set = sequential_window_dataset(x_valid, window_size)
 
 model = keras.models.Sequential([
-   keras.layers.LSTM(100, return_sequences=True, stateful=True,
-                     batch_input_shape=[1, None, 1]),
-   keras.layers.LSTM(100, return_sequences=True, stateful=True),
+   keras.layers.LSTM(128, return_sequences=True, stateful=True,
+                     batch_input_shape=[1, None, 1], dropout=0.2),
+   keras.layers.LSTM(64, return_sequences=True, stateful=True, dropout=0.2),
+   keras.layers.LSTM(32, stateful=True, dropout=0.2),
+   keras.layers.Dense(16, activation='relu'),
    keras.layers.Dense(1),
-   keras.layers.Lambda(lambda x: x * 200.0)
+   keras.layers.Lambda(lambda x: x * 400.0)
 ])
 model.summary()
 optimizer = keras.optimizers.SGD(lr=5e-7, momentum=0.9)
@@ -126,12 +128,10 @@ model.compile(loss=keras.losses.Huber(),
 reset_states = ResetStatesCallback()
 model_checkpoint = keras.callbacks.ModelCheckpoint(
    "my_checkpoint2.h5", save_best_only=True)
-early_stopping = keras.callbacks.EarlyStopping(patience=50)
+early_stopping = keras.callbacks.EarlyStopping(patience=100)
 model.fit(train_set, epochs=500,
           validation_data=valid_set,
           callbacks=[early_stopping, model_checkpoint, reset_states])
-
-# 0s 11ms/step - loss: 4.3533 - mae: 4.8286 - val_loss: 5.8771 - val_mae: 6.3575
 
 model = keras.models.load_model("my_checkpoint2.h5")
 
