@@ -98,7 +98,6 @@ model = keras.models.Sequential([
   keras.layers.Lambda(lambda x: x * 200)
 ])
 model.summary()
-
 lr_schedule = keras.callbacks.LearningRateScheduler(
     lambda epoch: 1e-8 * 10**(epoch / 20))
 optimizer = keras.optimizers.SGD(lr=1e-8, momentum=0.9)
@@ -143,6 +142,7 @@ model.fit(train_set, epochs=500,
           validation_data=valid_set,
           callbacks=[early_stopping, model_checkpoint])
 
+
 model = keras.models.load_model("my_checkpoint3.h5")
 
 rnn_forecast = model_forecast(model, series[:,  np.newaxis], window_size)
@@ -154,7 +154,7 @@ plot_series(time_valid, rnn_forecast)
 plt.show()
 
 mae_value = keras.metrics.mean_absolute_error(x_valid, rnn_forecast).numpy()
-print("mae: ", mae_value)
+print("mae: ", mae_value) # 5.113
 
 # Fully Convolutional Forecasting CNN
 print("Fully Convolutional Forecasting - CNN")
@@ -212,7 +212,7 @@ for dilation_rate in (1, 2, 4, 8, 16, 32):
                           activation="relu")
     )
 model.add(keras.layers.Conv1D(filters=1, kernel_size=1))
-optimizer = keras.optimizers.Adam(lr=3e-4)
+optimizer = keras.optimizers.Adam(lr=4e-4)
 model.compile(loss=keras.losses.Huber(),
               optimizer=optimizer,
               metrics=["mae"])
@@ -235,4 +235,4 @@ plot_series(time_valid, cnn_forecast)
 plt.show()
 
 mae_value = keras.metrics.mean_absolute_error(x_valid, cnn_forecast).numpy()
-print("mae: ", mae_value)
+print("mae: ", mae_value) # 4.602
