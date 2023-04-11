@@ -2,11 +2,12 @@
 # APPLYING IMAGE AUGMENTATION AND DROPOUT TO INCREASE ACCURACY AND DECREASE VALIDATION LOSS
 from __future__ import absolute_import, division, print_function
 import os
-
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.optimizers import RMSprop
+from tensorflow.keras.callbacks import EarlyStopping
 
 # get data from URL
 _URL = 'https://storage.googleapis.com/mledu-datasets/cats_and_dogs_filtered.zip'
@@ -44,7 +45,7 @@ print("Total validation images: ", total_val)
 
 # Model Parameters
 print("Parameters")
-BATCH_SIZE = 32  # Number of examples processed b4 updating model variables thro feedback loop
+BATCH_SIZE = 128  # Number of examples processed b4 updating model variables thro feedback loop
 IMG_SHAPE = 150  # 150x150 pixels
 
 # DATA AUGMENTATION
@@ -124,26 +125,29 @@ model = tf.keras.models.Sequential([
    tf.keras.layers.Conv2D(32, (3, 3), activation='relu', input_shape=(150, 150, 3)),
    tf.keras.layers.MaxPooling2D(2, 2),
 
+   tf.keras.layers.Conv2D(32, (3, 3), activation='relu'),
+   tf.keras.layers.MaxPooling2D(2, 2),
+
    tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
    tf.keras.layers.MaxPooling2D(2, 2),
 
-   tf.keras.layers.Conv2D(128, (3, 3), activation='relu'),
+   tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
    tf.keras.layers.MaxPooling2D(2, 2),
 
-   tf.keras.layers.Conv2D(256, (3, 3), activation='relu'),
+   tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
    tf.keras.layers.MaxPooling2D(2, 2),
 
    tf.keras.layers.Flatten(),
 
    tf.keras.layers.Dense(512, activation='relu'),
-   tf.keras.layers.Dropout(0.5),
-   tf.keras.layers.Dense(2, activation='sigmoid') # 1=0.789 # 2 = 0.817
+   tf.keras.layers.Dropout(0.05),
+   tf.keras.layers.Dense(1, activation='sigmoid') # 1=0.789 # 2 = 0.817
 ])
 
 
 print("Compile model")
-model.compile(optimizer='adam',
-              loss='sparse_categorical_crossentropy', # binary if 1 finishing neuron
+model.compile(optimizer=RMSprop(learning_rate=0.001),
+              loss='binary_crossentropy',
               metrics=['accuracy'])
 
 print('Model Summary')
@@ -152,14 +156,38 @@ model.summary()
 
 print("Training Model:")
 print(".fit")
-EPOCHS = 50
+CALLBACKS = [    EarlyStopping(monitor='accuracy', mode='max', baseline=0.9),    EarlyStopping(monitor='val_accuracy', mode='max', baseline=0.8)]
+
+EPOCHS = 200
 history = model.fit(
    train_data_gen,
    steps_per_epoch=int(np.ceil(total_train / float(BATCH_SIZE))),
    epochs=EPOCHS,
    validation_data=val_data_gen,
-   validation_steps=int(np.ceil(total_val / float(BATCH_SIZE)))
+   validation_steps=int(np.ceil(total_val / float(BATCH_SIZE))),
+   callbacks=[CALLBACKS]
 )
+if (history.history['accuracy'][-1] >= 0.9) and (history.history['val_accuracy'][-1] >= 0.8):
+    print('Training stopped as both training accuracy and validation accuracy have reached desired thresholds.')
+
 
 print("Validation Accuracy:", history.history['val_accuracy'][-1])
 
+# Epoch 200/200
+# 16/16 [==============================] - 9s 537ms/step - loss: 0.2393 - accuracy: 0.9015 - val_loss: 0.4004 - val_accuracy: 0.8440
+# Validation Accuracy: 0.843999981880188
+
+acc=history.history['accuracy']
+val_acc=history.history['val_accuracy']
+loss=history.history['loss']
+val_loss=history.history['val_loss']
+
+epochs=range(len(acc)) # Get number of epochs
+
+#------------------------------------------------
+# Plot training and validation accuracy per epoch
+#------------------------------------------------
+plt.plot(epochs, acc, 'r', "Training Accuracy")
+plt.plot(epochs, val_acc, 'b', "Validation Accuracy")
+plt.title('Training and validation accuracy')
+plt.show()
