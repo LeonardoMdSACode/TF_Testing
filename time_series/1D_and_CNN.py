@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import tensorflow as tf
+from tensorflow import keras
 
 keras = tf.keras
 
@@ -71,17 +72,16 @@ plt.figure(figsize=(10, 6))
 plot_series(time, series)
 plt.show()
 
+# split testing and validation data/ 1000 and backwards is training, foward is testing
 split_time = 1000
 time_train = time[:split_time]
 x_train = series[:split_time]
 time_valid = time[split_time:]
 x_valid = series[split_time:]
 
-# Preprocessing with 1D-Convolutional Layers
-print("Preprocessing with 1D-Convolutional Layers")
-keras.backend.clear_session()
-tf.random.set_seed(42)
-np.random.seed(42)
+keras.backend.clear_session() # clears previous keras sessions
+tf.random.set_seed(42) # sets randomizer tf to a number
+np.random.seed(42) # sets numpy randomizer to a reproducible number
 
 window_size = 30
 train_set = seq2seq_window_dataset(x_train, window_size,
@@ -180,9 +180,11 @@ for dilation_rate in (1, 2, 4, 8, 16, 32):
                           activation="relu")
     )
 model.add(keras.layers.Conv1D(filters=1, kernel_size=1))
+
 lr_schedule = keras.callbacks.LearningRateScheduler(
     lambda epoch: 1e-4 * 10**(epoch / 30))
 optimizer = keras.optimizers.Adam(lr=1e-4)
+
 model.compile(loss=keras.losses.Huber(),
               optimizer=optimizer,
               metrics=["mae"])
@@ -201,7 +203,7 @@ train_set = seq2seq_window_dataset(x_train, window_size,
                                    batch_size=128)
 valid_set = seq2seq_window_dataset(x_valid, window_size,
                                    batch_size=128)
-
+# CNN with chosen lr
 model = keras.models.Sequential()
 model.add(keras.layers.InputLayer(input_shape=[None, 1]))
 for dilation_rate in (1, 2, 4, 8, 16, 32):
