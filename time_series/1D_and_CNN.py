@@ -224,7 +224,7 @@ model.compile(loss=keras.losses.Huber(),
 model_checkpoint = keras.callbacks.ModelCheckpoint(
     "my_checkpoint4.h5", save_best_only=True)
 early_stopping = keras.callbacks.EarlyStopping(patience=50)
-history = model.fit(train_set, epochs=500,
+history = model.fit(train_set, epochs=1000,
                     validation_data=valid_set,
                     callbacks=[early_stopping, model_checkpoint])
 
@@ -239,4 +239,4 @@ plot_series(time_valid, cnn_forecast)
 plt.show()
 
 mae_value = keras.metrics.mean_absolute_error(x_valid, cnn_forecast).numpy()
-print("mae: ", mae_value) # 4.602
+print("mae: ", mae_value) # 4.588
